@@ -32,44 +32,6 @@ app.post('/api/donors', createDonor);
 app.get('/api/donors', getDonors);
 app.get('/api/donors/:id', getDonorDetails);
 
-// Create Donor function with database connection
-async function createDonor(req: any, res: any) {
-  const { name, email, donationAmount } = req.body;
-  const query = 'INSERT INTO donors (name, email, donation_amount) VALUES (?, ?, ?)';
-  pool.execute(query, [name, email, donationAmount], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-    res.status(201).json({ message: 'Donor created successfully', donorId: result.insertId });
-  });
-}
-
-// Get Donors function with database connection
-async function getDonors(req: any, res: any) {
-  const query = 'SELECT * FROM donors';
-  pool.execute(query, (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-    res.status(200).json(result);
-  });
-}
-
-// Get Donor Details function with database connection
-async function getDonorDetails(req: any, res: any) {
-  const donorId = req.params.id;
-  const query = 'SELECT * FROM donors WHERE id = ?';
-  pool.execute(query, [donorId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-    if (result.length === 0) {
-      return res.status(404).json({ message: 'Donor not found' });
-    }
-    res.status(200).json(result[0]);
-  });
-}
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

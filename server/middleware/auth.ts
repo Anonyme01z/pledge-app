@@ -11,6 +11,13 @@ export interface AuthRequest extends Request {
   };
 }
 
+// Add type for JWT payload
+interface JWTPayload {
+  id: string;
+  email: string;
+  type: string;
+}
+
 export const auth = async (
   req: AuthRequest,
   res: Response,
@@ -20,18 +27,17 @@ export const auth = async (
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      throw new Error();
+      return res.status(401).json({ error: 'No authentication token provided' });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      id: string;
-      email: string;
-      type: string;
-    };
-
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Please authenticate.' });
+    // More specific error handling
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    return res.status(401).json({ error: 'Authentication failed' });
   }
 };

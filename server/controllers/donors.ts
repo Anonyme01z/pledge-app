@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import db from '../db';
 import { AuthRequest } from '../middleware/auth';
+import crypto from 'crypto';
 
 const donorSchema = z.object({
   name: z.string().min(2),
@@ -42,6 +43,10 @@ export const getDonorDetails = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     
+    if (!id || typeof id !== 'string' || id.length !== 36) {
+      return res.status(400).json({ error: 'Invalid donor ID format' });
+    }
+    
     const donor = db.prepare('SELECT * FROM donors WHERE id = ?').get(id);
     
     if (!donor) {
@@ -58,6 +63,7 @@ export const getDonorDetails = async (req: AuthRequest, res: Response) => {
 
     res.json({ ...donor, donations });
   } catch (error) {
+    console.error('Error in getDonorDetails:', error);
     res.status(500).json({ error: 'Error fetching donor details' });
   }
 };
